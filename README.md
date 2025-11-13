@@ -40,12 +40,3 @@ The script is designed to work with a serial-controlled fan system and integrate
 
 ---
 
-## Installation
-
-1. Open the User Scripts plugin in Unraid.
-2. Create a new script and paste the contents of the file.
-3. Make the script executable:
-
-   ```bash
-   chmod +x fan_curve.sh
-
