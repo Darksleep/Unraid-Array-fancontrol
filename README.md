@@ -1,73 +1,51 @@
-HDD Fan Curve Controller for Unraid
+# HDD Fan Curve Controller for Unraid
 
-This script is a temperature-based fan controller for Unraid. It reads SMART data from all detected drives, calculates the highest drive temperature, and adjusts fan speed using a stepped fan curve. It supports a serial-controlled fan controller, hysteresis to prevent rapid fan changes, logging, and optional WhatsApp alert notifications.
+This script provides a temperature-based fan controller for Unraid. It reads SMART data from all connected drives, determines the hottest drive, and adjusts the fan speed based on a stepped fan curve. It also includes optional WhatsApp Cloud API alerts for high temperatures. The WhatsApp alert feature is included but not fully tested yet.
 
-The WhatsApp alert feature is included but has not been fully tested yet.
+The script is designed to work with a serial-controlled fan system and integrates cleanly with the Unraid User Scripts plugin.
 
-Overview
+---
 
-The script checks the temperatures of all drives on the system, including HDDs, SSDs, and NVMe drives. Based on the highest temperature found, it determines an appropriate fan speed using a user-defined temperature/speed curve.
+## Features
 
-If a drive exceeds a set emergency threshold, the fan is set to 100% and an alert can be sent via WhatsApp (experimental).
+- Reads temperatures from HDDs, SSDs, and NVMe drives using SMART  
+- Stepped fan curve that can be customised  
+- Hysteresis system to prevent constant fan speed fluctuations  
+- Emergency mode that forces fan speed to 100% at a defined temperature  
+- Optional WhatsApp alert support (experimental)  
+- Logs temperature readings and fan adjustments to `/var/log/fan_curve.log`  
+- Works with serial-based fan controllers
 
-The script is compatible with the Unraid User Scripts plugin and can be set to run on a schedule.
+---
 
-Features
+## How It Works
 
-Automatic temperature detection using SMART
+1. The script scans for all detectable drives using `smartctl`.
+2. It extracts the temperature using multiple fallbacks to support different drive types.
+3. It identifies the highest drive temperature.
+4. It selects the correct fan speed based on the configured fan curve.
+5. Hysteresis logic prevents the fan from ramping down too quickly.
+6. If the emergency temperature is reached, the fan is set to 100%.
+7. If WhatsApp alerts are enabled, an alert message can be sent.
 
-Stepped fan curve that can be modified by the user
+---
 
-Hysteresis to avoid constant speed changes
+## Requirements
 
-Emergency mode at a defined critical temperature
+- Unraid  
+- User Scripts plugin  
+- `smartctl` (included with Unraid)  
+- `jq` (recommended for NVMe fallback parsing)  
+- Serial fan controller hardware (e.g., Arduino or similar)
 
-Optional WhatsApp Cloud API alert system (not fully tested)
+---
 
-Logs actions and temperature readings to /var/log/fan_curve.log
+## Installation
 
-Designed for serial-controlled fan systems
+1. Open the User Scripts plugin in Unraid.
+2. Create a new script and paste the contents of the file.
+3. Make the script executable:
 
-Requirements
+   ```bash
+   chmod +x fan_curve.sh
 
-Unraid
-
-User Scripts plugin
-
-smartctl (included in Unraid)
-
-jq (optional, used for NVMe fallback)
-
-A serial-based fan controller (e.g., Arduino or other fan control hardware)
-
-Installation
-
-Create a new script using the User Scripts plugin.
-
-Paste the script contents into the editor.
-
-Make the script executable:
-
-chmod +x fan_curve.sh
-
-
-Update the configuration section to match your system (serial port, WhatsApp values, fan curve).
-
-Set the script to run on a schedule (every 5 minutes is typical).
-
-Logging
-
-The script logs important events, detected temperatures, and fan speed changes into:
-
-/var/log/fan_curve.log
-
-
-This is helpful for troubleshooting or verifying the fan curve logic.
-
-Notes
-
-The WhatsApp alerting system may not work reliably yet. It is included but still experimental, and further testing or improvements may be required.
-
-Make sure your serial fan controller supports the set_speed command or modify the script accordingly.
-
-Use at your own risk. Incorrect fan control could potentially cause overheating if misconfigured.
