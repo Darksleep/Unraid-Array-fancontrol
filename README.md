@@ -1,42 +1,93 @@
-# HDD Fan Curve Controller for Unraid
+# HDD Fan Curve Controller (Unraid & Linux)
 
-This script provides a temperature-based fan controller for Unraid. It reads SMART data from all connected drives, determines the hottest drive, and adjusts the fan speed based on a stepped fan curve. It also includes optional WhatsApp Cloud API alerts for high temperatures. The WhatsApp alert feature is included but not fully tested yet.
-
-The script is designed to work with a serial-controlled fan system and integrates cleanly with the Unraid User Scripts plugin.
-
----
-
-## Features
-
-- Reads temperatures from HDDs, SSDs, and NVMe drives using SMART  
-- Stepped fan curve that can be customised  
-- Hysteresis system to prevent constant fan speed fluctuations  
-- Emergency mode that forces fan speed to 100% at a defined temperature  
-- Optional WhatsApp alert support (experimental)  
-- Logs temperature readings and fan adjustments to `/var/log/fan_curve.log`  
-- Works with serial-based fan controllers
+A simple fan-control script for systems that use a serial-controlled fan board, such as Dell MD1200/MD1220 shelves or JBOD enclosures without built-in fan logic.  
+The script reads drive temperatures via SMART and adjusts fan speed using a stepped temperature curve.
 
 ---
 
-## How It Works
+## Supported Hardware
 
-1. The script scans for all detectable drives using `smartctl`.
-2. It extracts the temperature using multiple fallbacks to support different drive types.
-3. It identifies the highest drive temperature.
-4. It selects the correct fan speed based on the configured fan curve.
-5. Hysteresis logic prevents the fan from ramping down too quickly.
-6. If the emergency temperature is reached, the fan is set to 100%.
-7. If WhatsApp alerts are enabled, an alert message can be sent.
+- Dell MD1200 / MD1220
+- JBOD shelves with serial fan controllers
+- Any Linux server with a serial-connected fan board
 
 ---
 
 ## Requirements
 
-- Unraid  
-- User Scripts plugin  
-- `smartctl` (included with Unraid)  
-- `jq` (recommended for NVMe fallback parsing)  
-- Serial fan controller hardware (e.g., Arduino or similar)
+- bash
+- smartctl
+- jq
+- Serial fan controller (e.g. /dev/ttyS0 or /dev/ttyUSB0)
 
 ---
+
+## What the Script Does
+
+- Reads temperatures from HDD/SSD/NVMe drives
+- Uses the highest drive temperature for control
+- Applies a stepped fan curve
+- Includes hysteresis to prevent rapid speed changes
+- Emergency override (forces 100% fan)
+- Logs all fan changes
+- Optional WhatsApp temperature alerts
+
+---
+
+## Default Fan Curve
+
+| Temperature | Fan Speed |
+|-------------|-----------|
+| 30°C | 10% |
+| 34°C | 12% |
+| 37°C | 15% |
+| 40°C | 20% |
+| 43°C | 25% |
+| 45°C | 30% |
+| 48°C | 35% |
+| 52°C | 40% |
+| 55°C | 50% |
+
+**Emergency Mode:** At 55°C and above, fan speed is forced to 100%.
+
+---
+
+## Why This Exists
+
+Dell MD1200/MD1220 shelves only control fan speed when used with a Dell RAID controller.  
+When connected to an IT-mode HBA, they run at full speed constantly.  
+By installing a small serial-controlled fan board inside the shelf, this script provides automatic cooling control.
+
+---
+
+## Installation (Unraid)
+
+1. Install the **User Scripts** plugin.
+2. Create a new script and paste the full script.
+3. Edit the configuration section at the top.
+4. Run it manually once to verify it works.
+5. Schedule it to run every minute.
+
+---
+
+## Installation (Linux)
+
+```bash
+sudo apt install smartmontools jq
+chmod +x fan_curve.sh
+./fan_curve.sh
+```
+
+---
+
+```Cronjob
+* * * * * /path/to/fan_curve.sh
+```
+
+---
+These shelves do not perform fan regulation when connected to a non-Dell HBA.
+This script restores automatic control using a serial fan controller.
+
+---Disclaimer
+Use at your own risk. Confirm your serial controller responds properly before relying on it for thermal management.****
 
